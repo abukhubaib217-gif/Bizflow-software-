@@ -9,6 +9,7 @@ import { RevenueByService } from './components/dashboard/RevenueByService';
 import { RecentInvoices } from './components/dashboard/RecentInvoices';
 import { RecentPayments } from './components/dashboard/RecentPayments';
 import { RecentExpenses } from './components/dashboard/RecentExpenses';
+import { CategorySpecificModule } from './components/dashboard/CategorySpecificModule';
 
 import { CustomersView } from './components/views/CustomersView';
 import { JobsView } from './components/views/JobsView';
@@ -38,25 +39,33 @@ import {
   Job,
   Payment,
   ServiceItem,
+  BusinessAsset,
+  CommonExpenseCategory,
 } from './types';
 
 const CATEGORY_OPTIONS: { id: BusinessCategory; label: string }[] = [
-  { id: 'hvac_electrical', label: 'HVAC & Electrical Pros' },
-  { id: 'remodeling_contracting', label: 'Remodeling & Builders' },
-  { id: 'commercial_landscaping', label: 'Commercial Landscaping' },
-  { id: 'auto_fleet', label: 'Auto & Fleet Services' },
-  { id: 'digital_agency', label: 'Digital Creative Agency' },
+  { id: 'boom_truck_rental', label: 'Boom Truck Rental' },
+  { id: 'transport', label: 'Transport' },
+  { id: 'crane_rental', label: 'Crane Rental' },
+  { id: 'ac_repair', label: 'AC Repair' },
+  { id: 'cleaning_services', label: 'Cleaning Services' },
+  { id: 'car_rental', label: 'Car Rental' },
+  { id: 'construction', label: 'Construction' },
+  { id: 'plumbing', label: 'Plumbing' },
+  { id: 'electrical', label: 'Electrical' },
+  { id: 'maintenance', label: 'Maintenance' },
 ];
 
 export default function App() {
   const [currentSection, setCurrentSection] = useState<NavSection>('dashboard');
-  const [currentCategory, setCurrentCategory] = useState<BusinessCategory>('hvac_electrical');
+  const [currentCategory, setCurrentCategory] = useState<BusinessCategory>('boom_truck_rental');
   const [businessConfig, setBusinessConfig] = useState<BusinessConfig>(
-    BUSINESS_CONFIGS['hvac_electrical']
+    BUSINESS_CONFIGS['boom_truck_rental']
   );
 
   // Core Data State per category
-  const initialData = DATASETS['hvac_electrical'];
+  const initialData = DATASETS['boom_truck_rental'];
+  const [assets, setAssets] = useState<BusinessAsset[]>(initialData.assets);
   const [customers, setCustomers] = useState<Customer[]>(initialData.customers);
   const [employees, setEmployees] = useState<Employee[]>(initialData.employees);
   const [services, setServices] = useState<ServiceItem[]>(initialData.services);
@@ -73,6 +82,7 @@ export default function App() {
   // Modals state
   const [isCreateInvoiceOpen, setIsCreateInvoiceOpen] = useState(false);
   const [isAddExpenseOpen, setIsAddExpenseOpen] = useState(false);
+  const [initialExpenseCategory, setInitialExpenseCategory] = useState<CommonExpenseCategory>('Fuel');
   const [isAddCustomerOpen, setIsAddCustomerOpen] = useState(false);
   const [isCreateJobOpen, setIsCreateJobOpen] = useState(false);
   const [isRecordPaymentOpen, setIsRecordPaymentOpen] = useState(false);
@@ -86,6 +96,7 @@ export default function App() {
     setCurrentCategory(category);
     setBusinessConfig(BUSINESS_CONFIGS[category]);
     const dataset = DATASETS[category];
+    setAssets(dataset.assets);
     setCustomers(dataset.customers);
     setEmployees(dataset.employees);
     setServices(dataset.services);
@@ -135,6 +146,11 @@ export default function App() {
     setExpenses([expense, ...expenses]);
   };
 
+  const handleOpenAddExpenseWithCategory = (catName: string) => {
+    setInitialExpenseCategory(catName as CommonExpenseCategory);
+    setIsAddExpenseOpen(true);
+  };
+
   const handleAddCustomer = (newCust: Omit<Customer, 'id'>) => {
     const customer: Customer = { ...newCust, id: `cust-${Date.now()}` };
     setCustomers([customer, ...customers]);
@@ -157,7 +173,6 @@ export default function App() {
           const newBalance = Math.max(0, inv.totalAmount - newPaid);
           const newPaymentStatus = newBalance <= 0 ? 'paid' : 'partial';
 
-          // Keep invoice status separate! If it was approved, it remains approved.
           return {
             ...inv,
             amountPaid: newPaid,
@@ -182,7 +197,6 @@ export default function App() {
       })
     );
 
-    // If modal is open for that invoice, update it too
     if (selectedInvoiceForDetail && selectedInvoiceForDetail.id === payment.invoiceId) {
       const newPaid = selectedInvoiceForDetail.amountPaid + payment.amount;
       const newBalance = Math.max(0, selectedInvoiceForDetail.totalAmount - newPaid);
@@ -221,6 +235,14 @@ export default function App() {
     setIsRecordPaymentOpen(true);
   };
 
+  const handleAssetAction = (asset: BusinessAsset) => {
+    // Quick toggle asset status or show toast
+    const newStatus = asset.status === 'available' ? 'rented_on_job' : 'available';
+    setAssets(
+      assets.map((a) => (a.id === asset.id ? { ...a, status: newStatus } : a))
+    );
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex font-['Plus_Jakarta_Sans',sans-serif]">
       {/* Sidebar Navigation */}
@@ -248,7 +270,10 @@ export default function App() {
           categories={CATEGORY_OPTIONS}
           onOpenMobileSidebar={() => setIsMobileSidebarOpen(true)}
           onOpenCreateInvoice={() => setIsCreateInvoiceOpen(true)}
-          onOpenAddExpense={() => setIsAddExpenseOpen(true)}
+          onOpenAddExpense={() => {
+            setInitialExpenseCategory('Fuel');
+            setIsAddExpenseOpen(true);
+          }}
           onOpenAddCustomer={() => setIsAddCustomerOpen(true)}
           onOpenCreateJob={() => setIsCreateJobOpen(true)}
           onOpenRecordPayment={() => {
@@ -280,10 +305,23 @@ export default function App() {
 
               {/* Quick Actions Bar */}
               <QuickActionsBar
+                jobLabel={businessConfig.terminology.jobSingular}
                 onCreateInvoice={() => setIsCreateInvoiceOpen(true)}
-                onAddExpense={() => setIsAddExpenseOpen(true)}
+                onAddExpense={() => {
+                  setInitialExpenseCategory('Fuel');
+                  setIsAddExpenseOpen(true);
+                }}
                 onAddCustomer={() => setIsAddCustomerOpen(true)}
                 onCreateJob={() => setIsCreateJobOpen(true)}
+              />
+
+              {/* Business-Specific Dynamic Module (Adapts per category) */}
+              <CategorySpecificModule
+                businessConfig={businessConfig}
+                assets={assets}
+                currency={businessConfig.currency}
+                onOpenAddExpenseWithCategory={handleOpenAddExpenseWithCategory}
+                onActionClick={handleAssetAction}
               />
 
               {/* Middle Grid: Revenue vs Expenses Chart & Monthly Financial Summary */}
@@ -360,6 +398,7 @@ export default function App() {
             <JobsView
               jobs={jobs}
               currency={businessConfig.currency}
+              businessConfig={businessConfig}
               onOpenCreateJob={() => setIsCreateJobOpen(true)}
               onUpdateJobStatus={handleUpdateJobStatus}
             />
@@ -393,7 +432,10 @@ export default function App() {
             <ExpensesView
               expenses={expenses}
               currency={businessConfig.currency}
-              onOpenAddExpense={() => setIsAddExpenseOpen(true)}
+              onOpenAddExpense={() => {
+                setInitialExpenseCategory('Fuel');
+                setIsAddExpenseOpen(true);
+              }}
             />
           )}
 
@@ -402,6 +444,7 @@ export default function App() {
             <EmployeesView
               employees={employees}
               currency={businessConfig.currency}
+              businessConfig={businessConfig}
               onAddEmployee={(emp) => setEmployees([...employees, emp])}
             />
           )}
@@ -411,6 +454,7 @@ export default function App() {
             <ServicesView
               services={services}
               currency={businessConfig.currency}
+              businessConfig={businessConfig}
               onAddService={(srv) => setServices([...services, srv])}
             />
           )}
@@ -456,6 +500,7 @@ export default function App() {
         onClose={() => setIsAddExpenseOpen(false)}
         currency={businessConfig.currency}
         jobs={jobs}
+        initialCategory={initialExpenseCategory}
         onAddExpense={handleAddExpense}
       />
 
@@ -472,6 +517,7 @@ export default function App() {
         services={services}
         employees={employees}
         currency={businessConfig.currency}
+        businessConfig={businessConfig}
         onCreateJob={handleCreateJob}
       />
 

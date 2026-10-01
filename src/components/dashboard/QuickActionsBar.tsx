@@ -1,7 +1,8 @@
 import React from 'react';
-import { FileText, Receipt, UserPlus, Briefcase, Plus } from 'lucide-react';
+import { FileText, Receipt, UserPlus, Briefcase } from 'lucide-react';
 
 interface QuickActionsBarProps {
+  jobLabel: string;
   onCreateInvoice: () => void;
   onAddExpense: () => void;
   onAddCustomer: () => void;
@@ -9,6 +10,7 @@ interface QuickActionsBarProps {
 }
 
 export const QuickActionsBar: React.FC<QuickActionsBarProps> = ({
+  jobLabel,
   onCreateInvoice,
   onAddExpense,
   onAddCustomer,
@@ -19,7 +21,7 @@ export const QuickActionsBar: React.FC<QuickActionsBarProps> = ({
       <div className="flex items-center justify-between mb-3">
         <div>
           <h2 className="text-sm font-bold text-slate-900 tracking-tight">Quick Actions</h2>
-          <p className="text-xs text-slate-500">Fast entry for daily business workflows</p>
+          <p className="text-xs text-slate-500">Fast operations for daily business workflows</p>
         </div>
       </div>
 
@@ -52,7 +54,7 @@ export const QuickActionsBar: React.FC<QuickActionsBarProps> = ({
             <div className="text-xs font-bold text-slate-900 group-hover:text-rose-700 transition-colors">
               Add Expense
             </div>
-            <div className="text-[11px] text-slate-500 truncate">Log receipt or supply</div>
+            <div className="text-[11px] text-slate-500 truncate">Fuel, wages, lodging</div>
           </div>
         </button>
 
@@ -72,7 +74,7 @@ export const QuickActionsBar: React.FC<QuickActionsBarProps> = ({
           </div>
         </button>
 
-        {/* Create Job */}
+        {/* Create Job with Category-Aware Label */}
         <button
           onClick={onCreateJob}
           className="flex items-center gap-3 p-3 rounded-xl border border-purple-200 bg-purple-50/50 hover:bg-purple-50 hover:border-purple-300 transition-all text-left group cursor-pointer"
@@ -81,8 +83,8 @@ export const QuickActionsBar: React.FC<QuickActionsBarProps> = ({
             <Briefcase className="w-4 h-4" />
           </div>
           <div className="min-w-0">
-            <div className="text-xs font-bold text-slate-900 group-hover:text-purple-700 transition-colors">
-              Create Job
+            <div className="text-xs font-bold text-slate-900 group-hover:text-purple-700 transition-colors truncate">
+              Create {jobLabel}
             </div>
             <div className="text-[11px] text-slate-500 truncate">Dispatch work order</div>
           </div>

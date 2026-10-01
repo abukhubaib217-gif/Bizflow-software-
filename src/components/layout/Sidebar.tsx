@@ -54,23 +54,48 @@ export const Sidebar: React.FC<SidebarProps> = ({
   activeJobsCount,
 }) => {
   const [showCategoryMenu, setShowCategoryMenu] = React.useState(false);
+  const { terminology } = businessConfig;
 
   const navItems: {
     id: NavSection;
     label: string;
+    sublabel?: string;
     icon: React.ComponentType<{ className?: string }>;
     badge?: number | string;
     badgeVariant?: 'blue' | 'amber' | 'neutral';
   }[] = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'customers', label: 'Customers', icon: Users },
-    { id: 'jobs', label: 'Jobs', icon: Briefcase, badge: activeJobsCount > 0 ? activeJobsCount : undefined, badgeVariant: 'blue' },
-    { id: 'invoices', label: 'Invoices', icon: FileText, badge: pendingInvoicesCount > 0 ? `${pendingInvoicesCount} due` : undefined, badgeVariant: 'amber' },
+    {
+      id: 'jobs',
+      label: terminology.jobPlural,
+      sublabel: 'Work Orders',
+      icon: Briefcase,
+      badge: activeJobsCount > 0 ? activeJobsCount : undefined,
+      badgeVariant: 'blue',
+    },
+    {
+      id: 'invoices',
+      label: 'Invoices',
+      icon: FileText,
+      badge: pendingInvoicesCount > 0 ? `${pendingInvoicesCount} due` : undefined,
+      badgeVariant: 'amber',
+    },
     { id: 'payments', label: 'Payments', icon: CreditCard },
     { id: 'expenses', label: 'Expenses', icon: Receipt },
-    { id: 'employees', label: 'Employees', icon: UserCheck },
-    { id: 'services', label: 'Services', icon: Wrench },
-    { id: 'reports', label: 'Reports', icon: BarChart3 },
+    {
+      id: 'employees',
+      label: terminology.employeePlural,
+      sublabel: 'Staff Roster',
+      icon: UserCheck,
+    },
+    {
+      id: 'services',
+      label: terminology.servicePlural,
+      sublabel: 'Pricing & Catalog',
+      icon: Wrench,
+    },
+    { id: 'reports', label: 'Reports & P&L', icon: BarChart3 },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
@@ -105,15 +130,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <div className="flex items-center gap-2">
                 <span className="text-base font-bold text-white tracking-tight">BizFlow</span>
                 <span className="text-[10px] uppercase font-semibold tracking-wider text-blue-400 bg-blue-950/80 px-1.5 py-0.5 rounded border border-blue-800/60">
-                  PRO
+                  MULTI-MODEL
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400 font-normal">Modern Business Software</p>
+              <p className="text-[11px] text-slate-400 font-normal">Business Management Software</p>
             </div>
           </div>
           <button
             onClick={onCloseMobile}
-            className="lg:hidden p-1.5 text-slate-400 hover:text-white rounded-lg"
+            className="lg:hidden p-1.5 text-slate-400 hover:text-white rounded-lg cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -133,7 +158,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     {businessConfig.name}
                   </p>
                 </div>
-                <p className="text-[11px] text-slate-400 truncate mt-0.5 pl-5">
+                <p className="text-[11px] text-blue-400 font-medium truncate mt-0.5 pl-5">
                   {businessConfig.categoryLabel}
                 </p>
               </div>
@@ -142,9 +167,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
             {/* Dropdown for Business Category */}
             {showCategoryMenu && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-slate-800 rounded-lg shadow-xl border border-slate-700 p-1.5 z-30">
+              <div className="absolute top-full left-0 right-0 mt-1 bg-slate-800 rounded-lg shadow-xl border border-slate-700 p-1.5 z-40 max-h-72 overflow-y-auto">
                 <div className="px-2 py-1 text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
-                  Switch Business Preset
+                  Switch Business Category (10 Models)
                 </div>
                 {categories.map((cat) => (
                   <button
@@ -173,7 +198,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Navigation List */}
         <div className="flex-1 px-3 py-2 overflow-y-auto space-y-0.5">
           <div className="px-3 pt-2 pb-1 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-            Workspace
+            Modules & Operations
           </div>
 
           {navItems.map((item) => {
@@ -195,7 +220,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       isActive ? 'text-white' : 'text-slate-400 group-hover:text-slate-200'
                     }`}
                   />
-                  <span className="truncate">{item.label}</span>
+                  <div className="min-w-0 text-left">
+                    <span className="truncate block">{item.label}</span>
+                  </div>
                 </div>
 
                 {item.badge && (
@@ -216,16 +243,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
           })}
         </div>
 
-        {/* Sidebar Footer / User Account */}
+        {/* Sidebar Footer / Current Model Indicator */}
         <div className="p-3 border-t border-slate-800/80 bg-slate-950/40">
-          <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-800/50 transition-colors">
-            <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-xs font-semibold text-white border border-slate-600">
-              AD
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-xs font-semibold text-slate-200 truncate">Alex Davis</p>
-              <p className="text-[11px] text-slate-400 truncate">Owner & Managing Director</p>
-            </div>
+          <div className="p-2 rounded-lg bg-slate-800/40 border border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
+            <span>Model:</span>
+            <span className="font-semibold text-blue-400 truncate max-w-[150px]">
+              {businessConfig.categoryLabel}
+            </span>
           </div>
         </div>
       </aside>

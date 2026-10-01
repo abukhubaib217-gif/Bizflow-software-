@@ -25,17 +25,28 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
   const totalRevenue = invoices.reduce((sum, inv) => sum + inv.totalAmount, 0);
   const totalReceivedCash = payments.reduce((sum, p) => sum + p.amount, 0);
 
-  // COGS vs Operating Expenses
-  const directMaterials = expenses
-    .filter((e) => e.category === 'Materials' || e.category === 'Subcontractor')
+  // Direct Job / Field Costs vs General Overhead
+  const directFieldCosts = expenses
+    .filter((e) => e.category === 'Fuel' || e.category === 'Maintenance' || e.category === 'Transportation')
     .reduce((sum, e) => sum + e.amount, 0);
 
-  const operatingExpenses = expenses
-    .filter((e) => e.category !== 'Materials' && e.category !== 'Subcontractor')
+  const directPayroll = expenses
+    .filter((e) => e.category === 'Salary/Wages' || e.category === 'Overtime')
     .reduce((sum, e) => sum + e.amount, 0);
 
-  const totalExpenses = directMaterials + operatingExpenses;
-  const grossProfit = totalRevenue - directMaterials;
+  const overheadExpenses = expenses
+    .filter(
+      (e) =>
+        e.category !== 'Fuel' &&
+        e.category !== 'Maintenance' &&
+        e.category !== 'Transportation' &&
+        e.category !== 'Salary/Wages' &&
+        e.category !== 'Overtime'
+    )
+    .reduce((sum, e) => sum + e.amount, 0);
+
+  const totalExpenses = directFieldCosts + directPayroll + overheadExpenses;
+  const grossProfit = totalRevenue - (directFieldCosts + directPayroll);
   const grossMargin = totalRevenue > 0 ? (grossProfit / totalRevenue) * 100 : 0;
   const netAccrualProfit = totalRevenue - totalExpenses;
   const netCashSurplus = totalReceivedCash - totalExpenses;
@@ -151,27 +162,64 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
               </div>
             </div>
 
-            {/* COGS */}
+            {/* Direct Field & Labor Costs */}
             <div>
               <div className="flex justify-between font-bold text-sm text-slate-900 pb-1 border-b border-slate-100">
-                <span>Cost of Goods & Field Services (COGS)</span>
-                <span className="font-mono text-rose-700">-{formatCurrency(directMaterials, currency)}</span>
+                <span>Direct Field & Job Costs (Fuel, Maintenance, Transport)</span>
+                <span className="font-mono text-rose-700">-{formatCurrency(directFieldCosts, currency)}</span>
               </div>
               <div className="pl-4 space-y-1 text-slate-500 text-[11px] pt-1">
                 <div className="flex justify-between">
-                  <span>Direct Job Materials & Equipment</span>
+                  <span>Machinery & Fleet Fuel</span>
                   <span className="font-mono">
                     {formatCurrency(
-                      expenses.filter((e) => e.category === 'Materials').reduce((s, e) => s + e.amount, 0),
+                      expenses.filter((e) => e.category === 'Fuel').reduce((s, e) => s + e.amount, 0),
                       currency
                     )}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Subcontractor Specialist Labor</span>
+                  <span>Equipment Maintenance & Repairs</span>
                   <span className="font-mono">
                     {formatCurrency(
-                      expenses.filter((e) => e.category === 'Subcontractor').reduce((s, e) => s + e.amount, 0),
+                      expenses.filter((e) => e.category === 'Maintenance').reduce((s, e) => s + e.amount, 0),
+                      currency
+                    )}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Mobilization & Transportation</span>
+                  <span className="font-mono">
+                    {formatCurrency(
+                      expenses.filter((e) => e.category === 'Transportation').reduce((s, e) => s + e.amount, 0),
+                      currency
+                    )}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Direct Wages */}
+            <div>
+              <div className="flex justify-between font-bold text-sm text-slate-900 pb-1 border-b border-slate-100">
+                <span>Field Payroll & Wages (Salary, Overtime)</span>
+                <span className="font-mono text-rose-700">-{formatCurrency(directPayroll, currency)}</span>
+              </div>
+              <div className="pl-4 space-y-1 text-slate-500 text-[11px] pt-1">
+                <div className="flex justify-between">
+                  <span>Regular Base Wages</span>
+                  <span className="font-mono">
+                    {formatCurrency(
+                      expenses.filter((e) => e.category === 'Salary/Wages').reduce((s, e) => s + e.amount, 0),
+                      currency
+                    )}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Overtime & Premium Shifts</span>
+                  <span className="font-mono">
+                    {formatCurrency(
+                      expenses.filter((e) => e.category === 'Overtime').reduce((s, e) => s + e.amount, 0),
                       currency
                     )}
                   </span>
@@ -185,36 +233,36 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
               <span className="font-mono text-emerald-700">{formatCurrency(grossProfit, currency)}</span>
             </div>
 
-            {/* Operating Expenses */}
+            {/* Operating Overhead Expenses */}
             <div>
               <div className="flex justify-between font-bold text-sm text-slate-900 pb-1 border-b border-slate-100">
-                <span>Operating Overhead Expenses (SG&A)</span>
-                <span className="font-mono text-rose-700">-{formatCurrency(operatingExpenses, currency)}</span>
+                <span>Operating Overhead & Support Costs</span>
+                <span className="font-mono text-rose-700">-{formatCurrency(overheadExpenses, currency)}</span>
               </div>
               <div className="pl-4 space-y-1 text-slate-500 text-[11px] pt-1">
                 <div className="flex justify-between">
-                  <span>Vehicle Fleet & Fuel Operations</span>
+                  <span>Accommodation & Per Diem Food</span>
                   <span className="font-mono">
                     {formatCurrency(
-                      expenses.filter((e) => e.category === 'Fuel & Fleet').reduce((s, e) => s + e.amount, 0),
+                      expenses.filter((e) => e.category === 'Accommodation' || e.category === 'Food/Meals').reduce((s, e) => s + e.amount, 0),
                       currency
                     )}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Software, Cloud Systems & Telecom</span>
+                  <span>Communication & Radios</span>
                   <span className="font-mono">
                     {formatCurrency(
-                      expenses.filter((e) => e.category === 'Software').reduce((s, e) => s + e.amount, 0),
+                      expenses.filter((e) => e.category === 'Communication').reduce((s, e) => s + e.amount, 0),
                       currency
                     )}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Rental Equipment & Heavy Machinery</span>
+                  <span>Insurance & Government Fees</span>
                   <span className="font-mono">
                     {formatCurrency(
-                      expenses.filter((e) => e.category === 'Equipment').reduce((s, e) => s + e.amount, 0),
+                      expenses.filter((e) => e.category === 'Insurance' || e.category === 'Government Fees').reduce((s, e) => s + e.amount, 0),
                       currency
                     )}
                   </span>

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Receipt, Search, Plus, FileCheck, CheckCircle2, ShieldAlert } from 'lucide-react';
-import { Expense } from '../../types';
+import { Receipt, Search, Plus, FileCheck } from 'lucide-react';
+import { CommonExpenseCategory, Expense } from '../../types';
 import { formatCurrency } from '../../utils/formatters';
+import { ALL_EXPENSE_CATEGORIES } from '../../data/mockData';
 
 interface ExpensesViewProps {
   expenses: Expense[];
@@ -25,7 +26,7 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
 
     if (!matchesSearch) return false;
     if (categoryFilter === 'all') return true;
-    return exp.category.toLowerCase().includes(categoryFilter.toLowerCase());
+    return exp.category.toLowerCase() === categoryFilter.toLowerCase();
   });
 
   const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
@@ -85,20 +86,19 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
               />
             </div>
 
-            <div className="flex items-center p-1 bg-slate-100 rounded-lg text-xs font-medium text-slate-600 overflow-x-auto">
-              {['all', 'Materials', 'Equipment', 'Fuel', 'Subcontractor', 'Software'].map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setCategoryFilter(cat)}
-                  className={`px-2.5 py-1 rounded-md transition-colors cursor-pointer capitalize whitespace-nowrap ${
-                    categoryFilter === cat
-                      ? 'bg-white text-slate-900 shadow-xs font-semibold'
-                      : 'hover:text-slate-900'
-                  }`}
-                >
-                  {cat}
-                </button>
-              ))}
+            <div className="flex items-center">
+              <select
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+                className="bg-slate-100 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500/20 cursor-pointer"
+              >
+                <option value="all">All Expense Categories</option>
+                {ALL_EXPENSE_CATEGORIES.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 
@@ -117,8 +117,8 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
             <thead>
               <tr className="border-b border-slate-200/80 bg-slate-50 text-slate-500 font-semibold">
                 <th className="py-3 px-4">Expense #</th>
-                <th className="py-3 px-4">Vendor</th>
-                <th className="py-3 px-4">Category</th>
+                <th className="py-3 px-4">Vendor & Details</th>
+                <th className="py-3 px-4">Standard Category</th>
                 <th className="py-3 px-4">Date</th>
                 <th className="py-3 px-4">Method</th>
                 <th className="py-3 px-4 text-center">Tax Status</th>
@@ -136,7 +136,7 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
                     <div className="text-[11px] text-slate-400">{exp.description}</div>
                   </td>
                   <td className="py-3 px-4">
-                    <span className="bg-slate-100 px-2 py-0.5 rounded text-slate-800 font-medium">
+                    <span className="bg-slate-100 text-slate-800 px-2 py-0.5 rounded font-medium">
                       {exp.category}
                     </span>
                   </td>

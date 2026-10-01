@@ -1,28 +1,31 @@
 import React, { useState } from 'react';
-import { Wrench, Search, Plus, DollarSign, Clock, Percent, Sparkles } from 'lucide-react';
-import { ServiceItem } from '../../types';
+import { Wrench, Search, Plus, Clock } from 'lucide-react';
+import { BusinessConfig, ServiceItem } from '../../types';
 import { formatCurrency } from '../../utils/formatters';
 import { Modal } from '../common/Modal';
 
 interface ServicesViewProps {
   services: ServiceItem[];
   currency: string;
+  businessConfig: BusinessConfig;
   onAddService: (service: ServiceItem) => void;
 }
 
 export const ServicesView: React.FC<ServicesViewProps> = ({
   services,
   currency,
+  businessConfig,
   onAddService,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [name, setName] = useState('');
-  const [category, setCategory] = useState('HVAC Systems');
+  const [category, setCategory] = useState('Standard Service');
   const [pricingType, setPricingType] = useState<ServiceItem['pricingType']>('Fixed Rate');
   const [basePrice, setBasePrice] = useState('1200');
   const [estimatedDuration, setEstimatedDuration] = useState('1 Day');
   const [grossMarginPercent, setGrossMarginPercent] = useState('45');
+  const { terminology } = businessConfig;
 
   const filteredServices = services.filter(
     (s) =>
@@ -59,27 +62,27 @@ export const ServicesView: React.FC<ServicesViewProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-white p-4 rounded-xl border border-slate-200/90 shadow-xs">
           <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-            Active Catalog Offerings
+            Active {terminology.servicePlural}
           </div>
           <div className="text-2xl font-bold text-slate-900 font-mono mt-1">
             {services.length}
           </div>
-          <div className="text-xs text-slate-500 mt-1">Standardized commercial services</div>
+          <div className="text-xs text-slate-500 mt-1">Configured for {businessConfig.categoryLabel}</div>
         </div>
 
         <div className="bg-white p-4 rounded-xl border border-slate-200/90 shadow-xs">
           <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-            Total Service Billings (Mtd)
+            Total Invoiced Rate Volume
           </div>
           <div className="text-2xl font-bold text-blue-700 font-mono mt-1 tabular-nums">
             {formatCurrency(totalCatalogRevenue, currency)}
           </div>
-          <div className="text-xs text-blue-600 mt-1">Direct job earnings</div>
+          <div className="text-xs text-blue-600 mt-1">Billed month-to-date</div>
         </div>
 
         <div className="bg-white p-4 rounded-xl border border-slate-200/90 shadow-xs">
           <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-            Average Target Gross Margin
+            Average Target Profit Margin
           </div>
           <div className="text-2xl font-bold text-emerald-700 font-mono mt-1">
             {Math.round(services.reduce((a, b) => a + b.grossMarginPercent, 0) / (services.length || 1))}%
@@ -95,7 +98,7 @@ export const ServicesView: React.FC<ServicesViewProps> = ({
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder="Search services or categories..."
+              placeholder={`Search ${terminology.servicePlural.toLowerCase()}...`}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20"
@@ -107,7 +110,7 @@ export const ServicesView: React.FC<ServicesViewProps> = ({
             className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3.5 py-2 rounded-lg shadow-xs transition-colors cursor-pointer self-start sm:self-auto"
           >
             <Plus className="w-4 h-4" />
-            <span>Add Service</span>
+            <span>Add {terminology.serviceSingular}</span>
           </button>
         </div>
 
@@ -116,11 +119,11 @@ export const ServicesView: React.FC<ServicesViewProps> = ({
           <table className="w-full text-left text-xs">
             <thead>
               <tr className="border-b border-slate-200/80 bg-slate-50 text-slate-500 font-semibold">
-                <th className="py-3 px-4">Service Name</th>
-                <th className="py-3 px-4">Category</th>
-                <th className="py-3 px-4">Pricing Model</th>
-                <th className="py-3 px-4 text-right">Base / Standard Price</th>
-                <th className="py-3 px-4">Est. Duration</th>
+                <th className="py-3 px-4">{terminology.serviceSingular}</th>
+                <th className="py-3 px-4">Classification</th>
+                <th className="py-3 px-4">Billing Model</th>
+                <th className="py-3 px-4 text-right">Base / Quoted Price</th>
+                <th className="py-3 px-4">Duration / Term</th>
                 <th className="py-3 px-4 text-center">Gross Margin</th>
                 <th className="py-3 px-4 text-right">Revenue MTD</th>
               </tr>
@@ -161,21 +164,21 @@ export const ServicesView: React.FC<ServicesViewProps> = ({
         </div>
       </div>
 
-      {/* Add Service Modal */}
+      {/* Add Modal */}
       {isAddOpen && (
         <Modal
           isOpen={true}
           onClose={() => setIsAddOpen(false)}
-          title="Add Catalog Service"
-          subtitle="Define standard pricing, estimated timeline, and profit margin target"
+          title={`Add ${terminology.serviceSingular}`}
+          subtitle={`Define standard pricing and duration for ${businessConfig.categoryLabel}`}
           maxWidth="md"
         >
           <form onSubmit={handleAddSubmit} className="space-y-4 text-xs">
             <div>
-              <label className="block font-semibold text-slate-700 mb-1">Service Title *</label>
+              <label className="block font-semibold text-slate-700 mb-1">Service / Rate Title *</label>
               <input
                 type="text"
-                placeholder="e.g. 200A Electrical Subpanel Installation"
+                placeholder={`e.g. ${businessConfig.name} Offering`}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
@@ -185,10 +188,10 @@ export const ServicesView: React.FC<ServicesViewProps> = ({
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Category</label>
+                <label className="block font-semibold text-slate-700 mb-1">Classification</label>
                 <input
                   type="text"
-                  placeholder="e.g. Electrical / HVAC"
+                  placeholder="Primary / Specialized"
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
                   className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
@@ -204,9 +207,11 @@ export const ServicesView: React.FC<ServicesViewProps> = ({
                   className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                 >
                   <option value="Fixed Rate">Fixed Rate</option>
+                  <option value="Daily Rate">Daily Rate</option>
                   <option value="Hourly">Hourly Rate</option>
-                  <option value="Package">Service Package</option>
+                  <option value="Package">Package</option>
                   <option value="Square Footage">Square Footage</option>
+                  <option value="Mileage Rate">Mileage Rate</option>
                 </select>
               </div>
             </div>
@@ -259,7 +264,7 @@ export const ServicesView: React.FC<ServicesViewProps> = ({
                 type="submit"
                 className="px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-xs cursor-pointer"
               >
-                Add to Catalog
+                Save {terminology.serviceSingular}
               </button>
             </div>
           </form>

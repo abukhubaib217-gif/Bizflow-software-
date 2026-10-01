@@ -1,13 +1,61 @@
 export type BusinessCategory =
-  | 'hvac_electrical'
-  | 'remodeling_contracting'
-  | 'commercial_landscaping'
-  | 'auto_fleet'
-  | 'digital_agency';
+  | 'boom_truck_rental'
+  | 'transport'
+  | 'crane_rental'
+  | 'ac_repair'
+  | 'cleaning_services'
+  | 'car_rental'
+  | 'construction'
+  | 'plumbing'
+  | 'electrical'
+  | 'maintenance';
 
 export type InvoiceStatus = 'draft' | 'sent' | 'approved' | 'overdue' | 'cancelled';
 export type PaymentStatus = 'unpaid' | 'partial' | 'paid';
 export type JobStatus = 'scheduled' | 'in_progress' | 'completed' | 'invoiced' | 'cancelled';
+
+export type CommonExpenseCategory =
+  | 'Salary/Wages'
+  | 'Overtime'
+  | 'Accommodation'
+  | 'Food/Meals'
+  | 'Communication'
+  | 'Transportation'
+  | 'Fuel'
+  | 'Maintenance'
+  | 'Rent'
+  | 'Utilities'
+  | 'Marketing'
+  | 'Insurance'
+  | 'Government Fees'
+  | 'Other Expenses';
+
+export interface CategoryTerminology {
+  jobSingular: string; // e.g. "Rental Job", "Service Call", "Cleaning Job", "Transport Trip"
+  jobPlural: string;
+  employeeSingular: string; // e.g. "Driver / Operator", "Technician", "Crew Cleaner"
+  employeePlural: string;
+  serviceSingular: string; // e.g. "Rental Unit / Rate", "Service Code", "Cleaning Package"
+  servicePlural: string;
+  assetModuleTitle: string; // e.g. "Boom Trucks & Fleet Assets", "Spare Parts & Tools Depot", "Cleaning Teams & Supplies"
+  assetModuleType: 'fleet' | 'inventory' | 'crews' | 'construction_plant';
+  primaryFocusDescription: string;
+  specialExpenses: CommonExpenseCategory[];
+}
+
+export interface BusinessAsset {
+  id: string;
+  name: string;
+  identifier: string; // Plate #, SKU, or Team Code
+  category: string;
+  status: 'available' | 'rented_on_job' | 'maintenance' | 'low_stock';
+  metric1Label: string;
+  metric1Value: string;
+  metric2Label: string;
+  metric2Value: string;
+  rateOrCost: number;
+  lastInspectionOrRestock: string;
+}
 
 export interface Customer {
   id: string;
@@ -72,7 +120,7 @@ export interface Payment {
 export interface Expense {
   id: string;
   expenseNumber: string;
-  category: 'Materials' | 'Subcontractor' | 'Equipment' | 'Fuel & Fleet' | 'Utilities & Tools' | 'Software' | 'Payroll & Labor' | 'Office & Insurance';
+  category: CommonExpenseCategory;
   vendor: string;
   amount: number;
   date: string;
@@ -121,7 +169,7 @@ export interface ServiceItem {
   id: string;
   name: string;
   category: string;
-  pricingType: 'Fixed Rate' | 'Hourly' | 'Square Footage' | 'Package';
+  pricingType: 'Fixed Rate' | 'Hourly' | 'Square Footage' | 'Package' | 'Daily Rate' | 'Mileage Rate';
   basePrice: number;
   estimatedDuration: string;
   grossMarginPercent: number;
@@ -131,10 +179,10 @@ export interface ServiceItem {
 
 export interface MonthlyFinancialPoint {
   month: string;
-  revenue: number; // Invoiced sales
-  receivedPayments: number; // Actual cash collected
-  expenses: number; // Cash expenses
-  netProfit: number; // receivedPayments - expenses (or sales - expenses)
+  revenue: number;
+  receivedPayments: number;
+  expenses: number;
+  netProfit: number;
 }
 
 export interface BusinessConfig {
@@ -150,4 +198,5 @@ export interface BusinessConfig {
   currencySymbol: string;
   taxRate: number;
   paymentTerms: string;
+  terminology: CategoryTerminology;
 }

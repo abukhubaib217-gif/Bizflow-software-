@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Modal } from '../common/Modal';
-import { Customer, Employee, Job, ServiceItem } from '../../types';
+import { BusinessConfig, Customer, Employee, Job, ServiceItem } from '../../types';
 
 interface CreateJobModalProps {
   isOpen: boolean;
@@ -9,6 +9,7 @@ interface CreateJobModalProps {
   services: ServiceItem[];
   employees: Employee[];
   currency: string;
+  businessConfig: BusinessConfig;
   onCreateJob: (job: Omit<Job, 'id'>) => void;
 }
 
@@ -19,8 +20,10 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
   services,
   employees,
   currency,
+  businessConfig,
   onCreateJob,
 }) => {
+  const { terminology } = businessConfig;
   const [title, setTitle] = useState('');
   const [customerId, setCustomerId] = useState(customers[0]?.id || '');
   const [serviceId, setServiceId] = useState(services[0]?.id || '');
@@ -38,7 +41,7 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
     if (srv) {
       setEstimatedBudget(String(srv.basePrice));
       if (!title) {
-        setTitle(`${srv.name} Service Call`);
+        setTitle(`${srv.name}`);
       }
     }
   };
@@ -63,7 +66,7 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
       estimatedBudget: parseFloat(estimatedBudget) || 1000,
       actualCost: 0,
       priority,
-      location: location || customer?.address || 'Client Site',
+      location: location || customer?.address || 'Site Location',
     };
 
     onCreateJob(newJob);
@@ -76,16 +79,16 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Create Job / Work Order"
-      subtitle="Schedule field service, assign technicians, and set budget expectations."
+      title={`Create ${terminology.jobSingular}`}
+      subtitle={`Schedule, assign ${terminology.employeePlural.toLowerCase()}, and set budget for ${businessConfig.categoryLabel}.`}
       maxWidth="lg"
     >
       <form onSubmit={handleSubmit} className="space-y-4 text-xs">
         <div>
-          <label className="block font-semibold text-slate-700 mb-1">Job Work Order Title *</label>
+          <label className="block font-semibold text-slate-700 mb-1">{terminology.jobSingular} Title *</label>
           <input
             type="text"
-            placeholder="e.g. Compressor Overhaul & Electrical Re-wire"
+            placeholder={`e.g. Scheduled ${terminology.jobSingular} Delivery`}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
@@ -111,7 +114,7 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
           </div>
 
           <div>
-            <label className="block font-semibold text-slate-700 mb-1">Service Type *</label>
+            <label className="block font-semibold text-slate-700 mb-1">{terminology.serviceSingular} *</label>
             <select
               value={serviceId}
               onChange={(e) => handleServiceChange(e.target.value)}
@@ -129,7 +132,9 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
-            <label className="block font-semibold text-slate-700 mb-1">Assigned Employee</label>
+            <label className="block font-semibold text-slate-700 mb-1">
+              Assigned {terminology.employeeSingular}
+            </label>
             <select
               value={employeeId}
               onChange={(e) => setEmployeeId(e.target.value)}
@@ -164,7 +169,7 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
               <option value="low">Low Priority</option>
               <option value="medium">Medium Priority</option>
               <option value="high">High Priority</option>
-              <option value="urgent">Urgent Emergency</option>
+              <option value="urgent">Urgent Callout</option>
             </select>
           </div>
         </div>
@@ -183,10 +188,10 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
           </div>
 
           <div>
-            <label className="block font-semibold text-slate-700 mb-1">Job Site Location</label>
+            <label className="block font-semibold text-slate-700 mb-1">Site / Job Address</label>
             <input
               type="text"
-              placeholder="e.g. 740 S Congress Ave, Rooftop Section C"
+              placeholder="e.g. 740 S Congress Ave"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
               className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
@@ -204,9 +209,9 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
           </button>
           <button
             type="submit"
-            className="px-4 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-medium shadow-xs cursor-pointer"
+            className="px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-xs cursor-pointer"
           >
-            Dispatch Job
+            Dispatch {terminology.jobSingular}
           </button>
         </div>
       </form>

@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal } from '../common/Modal';
-import { Expense, Job } from '../../types';
+import { CommonExpenseCategory, Expense, Job } from '../../types';
+import { ALL_EXPENSE_CATEGORIES } from '../../data/mockData';
 
 interface AddExpenseModalProps {
   isOpen: boolean;
   onClose: () => void;
   currency: string;
   jobs: Job[];
+  initialCategory?: CommonExpenseCategory;
   onAddExpense: (expense: Omit<Expense, 'id'>) => void;
 }
 
@@ -15,10 +17,11 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
   onClose,
   currency,
   jobs,
+  initialCategory = 'Fuel',
   onAddExpense,
 }) => {
   const [vendor, setVendor] = useState('');
-  const [category, setCategory] = useState<Expense['category']>('Materials');
+  const [category, setCategory] = useState<CommonExpenseCategory>(initialCategory);
   const [amount, setAmount] = useState('');
   const [date, setDate] = useState('2026-10-01');
   const [paymentMethod, setPaymentMethod] = useState<Expense['paymentMethod']>('Company Card');
@@ -26,6 +29,12 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
   const [taxDeductible, setTaxDeductible] = useState(true);
   const [receiptAttached, setReceiptAttached] = useState(true);
   const [jobId, setJobId] = useState('');
+
+  useEffect(() => {
+    if (initialCategory) {
+      setCategory(initialCategory);
+    }
+  }, [initialCategory, isOpen]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,7 +49,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
       paymentMethod,
       taxDeductible,
       receiptAttached,
-      description: description || `${category} purchase from ${vendor}`,
+      description: description || `${category} - ${vendor}`,
       jobId: jobId || undefined,
     };
 
@@ -56,16 +65,16 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
       isOpen={isOpen}
       onClose={onClose}
       title="Add Operating Expense"
-      subtitle="Record operational costs, material expenses, subcontractor fees, or tools."
+      subtitle="Log direct wages, overtime, fuel, accommodation, maintenance, or overhead."
       maxWidth="lg"
     >
       <form onSubmit={handleSubmit} className="space-y-4 text-xs">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label className="block font-semibold text-slate-700 mb-1">Vendor / Supplier *</label>
+            <label className="block font-semibold text-slate-700 mb-1">Vendor / Payee *</label>
             <input
               type="text"
-              placeholder="e.g. Carrier Supply, Home Depot, Sunbelt Rentals"
+              placeholder="e.g. ExxonMobil, Extended Stay, Payroll Direct Deposit"
               value={vendor}
               onChange={(e) => setVendor(e.target.value)}
               className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
@@ -90,20 +99,18 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label className="block font-semibold text-slate-700 mb-1">Expense Category</label>
+            <label className="block font-semibold text-slate-700 mb-1">Expense Category *</label>
             <select
               value={category}
-              onChange={(e) => setCategory(e.target.value as Expense['category'])}
+              onChange={(e) => setCategory(e.target.value as CommonExpenseCategory)}
               className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              required
             >
-              <option value="Materials">Materials & Hardware</option>
-              <option value="Subcontractor">Subcontractor Labor</option>
-              <option value="Equipment">Equipment & Tool Rental</option>
-              <option value="Fuel & Fleet">Fuel & Fleet Maintenance</option>
-              <option value="Software">Software & Cloud Services</option>
-              <option value="Utilities & Tools">Utilities & Small Tools</option>
-              <option value="Payroll & Labor">Payroll & Direct Labor</option>
-              <option value="Office & Insurance">Office, Legal & Insurance</option>
+              {ALL_EXPENSE_CATEGORIES.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -127,10 +134,10 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
               onChange={(e) => setPaymentMethod(e.target.value as Expense['paymentMethod'])}
               className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             >
-              <option value="Company Card">Company Credit Card</option>
+              <option value="Company Card">Company Card</option>
               <option value="Bank Wire">ACH / Bank Wire</option>
               <option value="Check">Check</option>
-              <option value="Cash">Petty Cash</option>
+              <option value="Cash">Cash</option>
             </select>
           </div>
 
@@ -155,7 +162,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
           <label className="block font-semibold text-slate-700 mb-1">Description / Memo</label>
           <input
             type="text"
-            placeholder="Itemization details or project memo..."
+            placeholder="e.g. 50 gallons diesel or 4 nights hotel lodging during remote job"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
@@ -181,7 +188,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
               onChange={(e) => setReceiptAttached(e.target.checked)}
               className="rounded text-blue-600 focus:ring-blue-500"
             />
-            <span className="text-slate-700 font-medium">Digital Receipt Document Verified</span>
+            <span className="text-slate-700 font-medium">Receipt Attached & Verified</span>
           </label>
         </div>
 

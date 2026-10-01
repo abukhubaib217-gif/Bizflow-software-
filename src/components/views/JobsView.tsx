@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { Briefcase, Search, Plus, Calendar, User, MapPin, CheckCircle, Clock } from 'lucide-react';
-import { Job, JobStatus } from '../../types';
+import { Briefcase, Search, Plus, Calendar, User, MapPin } from 'lucide-react';
+import { BusinessConfig, Job, JobStatus } from '../../types';
 import { formatCurrency, getJobStatusMeta } from '../../utils/formatters';
 
 interface JobsViewProps {
   jobs: Job[];
   currency: string;
+  businessConfig: BusinessConfig;
   onOpenCreateJob: () => void;
   onUpdateJobStatus: (jobId: string, status: JobStatus) => void;
 }
@@ -13,11 +14,13 @@ interface JobsViewProps {
 export const JobsView: React.FC<JobsViewProps> = ({
   jobs,
   currency,
+  businessConfig,
   onOpenCreateJob,
   onUpdateJobStatus,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | JobStatus>('all');
+  const { terminology } = businessConfig;
 
   const filteredJobs = jobs.filter((job) => {
     const matchesSearch =
@@ -41,35 +44,35 @@ export const JobsView: React.FC<JobsViewProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         <div className="bg-white p-4 rounded-xl border border-slate-200/90 shadow-xs">
           <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-            Total Work Orders
+            Total {terminology.jobPlural}
           </div>
           <div className="text-2xl font-bold text-slate-900 font-mono mt-1">{jobs.length}</div>
-          <div className="text-xs text-slate-500 mt-1">Dispatched to date</div>
+          <div className="text-xs text-slate-500 mt-1">Booked & dispatched</div>
         </div>
 
         <div className="bg-white p-4 rounded-xl border border-slate-200/90 shadow-xs">
           <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-            Active / Scheduled
+            Active / Dispatched
           </div>
           <div className="text-2xl font-bold text-blue-600 font-mono mt-1">
             {activeJobs.length}
           </div>
-          <div className="text-xs text-blue-600 mt-1">Field operations in flight</div>
+          <div className="text-xs text-blue-600 mt-1">Operations currently in flight</div>
         </div>
 
         <div className="bg-white p-4 rounded-xl border border-slate-200/90 shadow-xs">
           <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-            Completed & Invoiced
+            Completed & Delivered
           </div>
           <div className="text-2xl font-bold text-emerald-700 font-mono mt-1">
             {completedJobs.length}
           </div>
-          <div className="text-xs text-emerald-600 mt-1">Successfully delivered</div>
+          <div className="text-xs text-emerald-600 mt-1">Ready for final billing</div>
         </div>
 
         <div className="bg-white p-4 rounded-xl border border-slate-200/90 shadow-xs">
           <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-            Total Work Order Volume
+            Contract Volume
           </div>
           <div className="text-2xl font-bold text-slate-900 font-mono mt-1 tabular-nums">
             {formatCurrency(totalBudget, currency)}
@@ -87,7 +90,7 @@ export const JobsView: React.FC<JobsViewProps> = ({
               <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
-                placeholder="Search jobs, tech, client..."
+                placeholder={`Search ${terminology.jobPlural.toLowerCase()}...`}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20"
@@ -118,7 +121,7 @@ export const JobsView: React.FC<JobsViewProps> = ({
             className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3.5 py-2 rounded-lg shadow-xs transition-colors cursor-pointer self-start sm:self-auto"
           >
             <Plus className="w-4 h-4" />
-            <span>Create Job</span>
+            <span>Create {terminology.jobSingular}</span>
           </button>
         </div>
 
@@ -127,10 +130,10 @@ export const JobsView: React.FC<JobsViewProps> = ({
           <table className="w-full text-left text-xs">
             <thead>
               <tr className="border-b border-slate-200/80 bg-slate-50 text-slate-500 font-semibold">
-                <th className="py-3 px-4">Job # & Title</th>
+                <th className="py-3 px-4">Identifier & Scope</th>
                 <th className="py-3 px-4">Client</th>
-                <th className="py-3 px-4">Assigned Tech</th>
-                <th className="py-3 px-4">Date</th>
+                <th className="py-3 px-4">Assigned {terminology.employeeSingular}</th>
+                <th className="py-3 px-4">Scheduled Date</th>
                 <th className="py-3 px-4 text-center">Status</th>
                 <th className="py-3 px-4 text-right">Est. Budget</th>
                 <th className="py-3 px-4 text-right">Actual Cost</th>
@@ -180,7 +183,7 @@ export const JobsView: React.FC<JobsViewProps> = ({
                           onClick={() => onUpdateJobStatus(job.id, 'in_progress')}
                           className="px-2 py-1 rounded bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 font-medium transition-colors cursor-pointer text-[11px]"
                         >
-                          Start Job
+                          Start Operation
                         </button>
                       )}
                       {job.status === 'in_progress' && (
@@ -188,7 +191,7 @@ export const JobsView: React.FC<JobsViewProps> = ({
                           onClick={() => onUpdateJobStatus(job.id, 'completed')}
                           className="px-2 py-1 rounded bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 font-medium transition-colors cursor-pointer text-[11px]"
                         >
-                          Complete
+                          Mark Delivered
                         </button>
                       )}
                       {(job.status === 'completed' || job.status === 'invoiced') && (
