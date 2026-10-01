@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   LayoutDashboard,
+  Truck,
   Users,
   Briefcase,
   FileText,
@@ -18,6 +19,7 @@ import { BusinessCategory, BusinessConfig } from '../../types';
 
 export type NavSection =
   | 'dashboard'
+  | 'assets'
   | 'customers'
   | 'jobs'
   | 'invoices'
@@ -39,6 +41,7 @@ interface SidebarProps {
   onCloseMobile: () => void;
   pendingInvoicesCount: number;
   activeJobsCount: number;
+  totalAssetsCount?: number;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -52,6 +55,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onCloseMobile,
   pendingInvoicesCount,
   activeJobsCount,
+  totalAssetsCount = 0,
 }) => {
   const [showCategoryMenu, setShowCategoryMenu] = React.useState(false);
   const { terminology } = businessConfig;
@@ -65,6 +69,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
     badgeVariant?: 'blue' | 'amber' | 'neutral';
   }[] = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    {
+      id: 'assets',
+      label: 'Assets & Fleet',
+      sublabel: 'Ownership & Equipment',
+      icon: Truck,
+      badge: totalAssetsCount > 0 ? totalAssetsCount : undefined,
+      badgeVariant: 'blue',
+    },
     { id: 'customers', label: 'Customers', icon: Users },
     {
       id: 'jobs',

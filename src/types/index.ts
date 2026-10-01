@@ -30,14 +30,150 @@ export type CommonExpenseCategory =
   | 'Government Fees'
   | 'Other Expenses';
 
+// ==========================================
+// ASSETS & OWNERSHIP MANAGEMENT TYPES
+// ==========================================
+
+export type OwnershipModel =
+  | 'company_owned'
+  | 'shared_partnership'
+  | 'rented_leased'
+  | 'company_partner_share'
+  | 'rented_profit_sharing';
+
+export type AssetStatus =
+  | 'active_available'
+  | 'on_job'
+  | 'maintenance'
+  | 'contract_ended'
+  | 'settled';
+
+export interface AssetPartner {
+  id: string;
+  name: string;
+  ownershipPercentage: number; // e.g. 50, 30, 20 (must sum to 100% for shared ownership)
+  investmentAmount?: number;
+  startDate: string;
+  endDate?: string;
+  isActive: boolean;
+  phone?: string;
+  email?: string;
+  notes?: string;
+}
+
+export interface LeaseAgreement {
+  ownerLessorName: string;
+  rentalAmount: number;
+  paymentFrequency: 'daily' | 'weekly' | 'monthly' | 'per_job';
+  contractStartDate: string;
+  contractEndDate: string;
+  deposit?: number;
+  rentalExpenseYTD: number;
+  otherContractCosts?: number;
+  status: 'active' | 'pending_renewal' | 'terminated';
+}
+
+export interface SharingAgreement {
+  method:
+    | 'ownership_percent'
+    | 'revenue_share'
+    | 'expense_share'
+    | 'profit_share'
+    | 'fixed_plus_share'
+    | 'custom';
+  ownershipPercentage?: number;
+  revenueSharePercentage?: number;
+  expenseSharePercentage?: number;
+  profitSharePercentage?: number;
+  fixedRentalAmount?: number;
+  fixedPayment?: number;
+  customRulesDescription?: string;
+  effectiveFrom: string;
+}
+
+export interface AssetExpenseRecord {
+  id: string;
+  expenseNumber: string;
+  category: CommonExpenseCategory;
+  vendor: string;
+  amount: number;
+  date: string;
+  allocationType: 'shared' | 'direct';
+  directChargedTo?: string; // e.g., "Company Account", "Partner: Marcus Vance", "Lessor"
+  description: string;
+}
+
+export interface PartnerSettlementShare {
+  partnerId: string;
+  partnerName: string;
+  percentage: number;
+  shareAmount: number;
+  status: 'pending' | 'settled';
+}
+
+export interface AssetSettlement {
+  id: string;
+  assetId: string;
+  assetNumber: string;
+  assetName: string;
+  settlementDate: string;
+  reason: 'asset_sold' | 'contract_ended' | 'partnership_dissolved' | 'returned_to_owner';
+  totalRevenue: number;
+  totalExpenses: number;
+  netProfitOrLoss: number;
+  rentalAmountsPaid: number;
+  outstandingAmounts: number;
+  partnerShares: PartnerSettlementShare[];
+  finalAmountPayableReceivable: number;
+  status: 'pending_approval' | 'finalized_closed';
+  notes?: string;
+}
+
+export interface ManagedAsset {
+  id: string;
+  assetType: string; // e.g. "Boom Truck", "All-Terrain Crane", "Freight Tractor", "Excavator", "Van", "Car"
+  name: string;
+  assetNumber: string; // e.g. "TRK-104", "CRN-02"
+  registrationPlate: string; // e.g. "TX-892-BTR"
+  model: string;
+  year: number;
+  status: AssetStatus;
+  assignedDriverId?: string;
+  assignedDriverName?: string;
+  ownershipModel: OwnershipModel;
+  startDate: string;
+  endDate?: string;
+  notes?: string;
+  // Ownership & Sharing specs
+  partners: AssetPartner[];
+  leaseAgreement?: LeaseAgreement;
+  sharingAgreement?: SharingAgreement;
+  // Financial metrics
+  totalRevenue: number;
+  totalExpenses: number;
+  rentalLeaseCost: number;
+  sharedExpenses: number;
+  directExpenses: number;
+  netProfit: number;
+  outstandingPayments: number;
+  // Specific expense items assigned
+  expenses: AssetExpenseRecord[];
+  // Historical settlements
+  settlementHistory?: AssetSettlement[];
+}
+
+// ==========================================
+// CORE DOMAIN TYPES
+// ==========================================
+
 export interface CategoryTerminology {
-  jobSingular: string; // e.g. "Rental Job", "Service Call", "Cleaning Job", "Transport Trip"
+  jobSingular: string;
   jobPlural: string;
-  employeeSingular: string; // e.g. "Driver / Operator", "Technician", "Crew Cleaner"
+  employeeSingular: string;
   employeePlural: string;
-  serviceSingular: string; // e.g. "Rental Unit / Rate", "Service Code", "Cleaning Package"
+  serviceSingular: string;
   servicePlural: string;
-  assetModuleTitle: string; // e.g. "Boom Trucks & Fleet Assets", "Spare Parts & Tools Depot", "Cleaning Teams & Supplies"
+  assetModuleTitle: string;
   assetModuleType: 'fleet' | 'inventory' | 'crews' | 'construction_plant';
   primaryFocusDescription: string;
   specialExpenses: CommonExpenseCategory[];
@@ -46,7 +182,7 @@ export interface CategoryTerminology {
 export interface BusinessAsset {
   id: string;
   name: string;
-  identifier: string; // Plate #, SKU, or Team Code
+  identifier: string;
   category: string;
   status: 'available' | 'rented_on_job' | 'maintenance' | 'low_stock';
   metric1Label: string;

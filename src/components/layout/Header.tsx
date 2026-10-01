@@ -55,6 +55,10 @@ export const Header: React.FC<HeaderProps> = ({
       title: `${businessConfig.categoryLabel} Dashboard`,
       subtitle: `Real-time revenue, cash collections, ${terminology.jobPlural.toLowerCase()}, and net profit`,
     },
+    assets: {
+      title: 'Assets & Ownership Management',
+      subtitle: 'Trucks, cranes, heavy equipment, multi-partner equity, lease agreements and profit-sharing',
+    },
     customers: {
       title: 'Customer & Client Accounts',
       subtitle: 'Manage client directory, contract balances, and billing profiles',
