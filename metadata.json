@@ -1,0 +1,6 @@
+{
+  "name": "BizFlow - Modern Business Management Software",
+  "description": "Modern business management software for small and local businesses to manage revenue, received payments, pending invoices, expenses, jobs, and net profit.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
