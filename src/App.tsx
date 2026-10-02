@@ -20,6 +20,7 @@ import { EmployeesView } from './components/views/EmployeesView';
 import { ServicesView } from './components/views/ServicesView';
 import { ReportsView } from './components/views/ReportsView';
 import { SettingsView } from './components/views/SettingsView';
+import { AssetsView } from './components/views/AssetsView';
 
 import { CreateInvoiceModal } from './components/modals/CreateInvoiceModal';
 import { AddExpenseModal } from './components/modals/AddExpenseModal';
@@ -28,7 +29,14 @@ import { CreateJobModal } from './components/modals/CreateJobModal';
 import { RecordPaymentModal } from './components/modals/RecordPaymentModal';
 import { InvoiceDetailModal } from './components/modals/InvoiceDetailModal';
 
+import { CreateAssetModal } from './components/assets/CreateAssetModal';
+import { AssetDetailModal } from './components/assets/AssetDetailModal';
+import { AssetProfitabilityModal } from './components/assets/AssetProfitabilityModal';
+import { AssetSettlementModal } from './components/assets/AssetSettlementModal';
+import { AddAssetExpenseModal } from './components/assets/AddAssetExpenseModal';
+
 import { BUSINESS_CONFIGS, DATASETS } from './data/mockData';
+import { INITIAL_MANAGED_ASSETS } from './data/mockAssets';
 import {
   BusinessCategory,
   BusinessConfig,
@@ -41,6 +49,9 @@ import {
   ServiceItem,
   BusinessAsset,
   CommonExpenseCategory,
+  ManagedAsset,
+  AssetSettlement,
+  AssetExpenseRecord,
 } from './types';
 
 const CATEGORY_OPTIONS: { id: BusinessCategory; label: string }[] = [
@@ -78,6 +89,14 @@ export default function App() {
   // UI state
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Managed Assets & Ownership State
+  const [managedAssets, setManagedAssets] = useState<ManagedAsset[]>(INITIAL_MANAGED_ASSETS);
+  const [isCreateAssetOpen, setIsCreateAssetOpen] = useState(false);
+  const [selectedAssetForDetail, setSelectedAssetForDetail] = useState<ManagedAsset | null>(null);
+  const [selectedAssetForProfitability, setSelectedAssetForProfitability] = useState<ManagedAsset | null>(null);
+  const [selectedAssetForSettlement, setSelectedAssetForSettlement] = useState<ManagedAsset | null>(null);
+  const [selectedAssetForExpense, setSelectedAssetForExpense] = useState<ManagedAsset | null>(null);
 
   // Modals state
   const [isCreateInvoiceOpen, setIsCreateInvoiceOpen] = useState(false);
@@ -243,6 +262,159 @@ export default function App() {
     );
   };
 
+  // Handlers for Assets & Ownership Management
+  const handleCreateAsset = (newAst: Omit<ManagedAsset, 'id'>) => {
+    const asset: ManagedAsset = {
+      ...newAst,
+      id: `asset-${Date.now()}`,
+      totalRevenue: 0,
+      totalExpenses: 0,
+      rentalLeaseCost: newAst.leaseAgreement ? newAst.leaseAgreement.rentalAmount : 0,
+      sharedExpenses: 0,
+      directExpenses: 0,
+      netProfit: 0,
+      outstandingPayments: 0,
+      expenses: [],
+    };
+    setManagedAssets([asset, ...managedAssets]);
+  };
+
+  const handleOpenAssetDetail = (asset: ManagedAsset) => {
+    setSelectedAssetForDetail(asset);
+  };
+
+  const handleOpenAssetProfitability = (asset: ManagedAsset) => {
+    setSelectedAssetForProfitability(asset);
+  };
+
+  const handleOpenAssetSettlement = (asset: ManagedAsset) => {
+    setSelectedAssetForSettlement(asset);
+  };
+
+  const handleConfirmSettlement = (settlement: AssetSettlement) => {
+    setManagedAssets((prev) =>
+      prev.map((a) => {
+        if (a.id === settlement.assetId) {
+          return {
+            ...a,
+            status: 'settled',
+            outstandingPayments: 0,
+            settlementHistory: [...(a.settlementHistory || []), settlement],
+          };
+        }
+        return a;
+      })
+    );
+    if (selectedAssetForDetail && selectedAssetForDetail.id === settlement.assetId) {
+      setSelectedAssetForDetail((prev) =>
+        prev
+          ? {
+              ...prev,
+              status: 'settled',
+              outstandingPayments: 0,
+              settlementHistory: [...(prev.settlementHistory || []), settlement],
+            }
+          : null
+      );
+    }
+  };
+
+  const handleOpenAddAssetExpense = (assetId: string) => {
+    const target = managedAssets.find((a) => a.id === assetId);
+    if (target) {
+      setSelectedAssetForExpense(target);
+    }
+  };
+
+  const handleAddAssetExpense = (
+    assetId: string,
+    expData: Omit<AssetExpenseRecord, 'id' | 'expenseNumber'>
+  ) => {
+    const newRecord: AssetExpenseRecord = {
+      ...expData,
+      id: `aexp-${Date.now()}`,
+      expenseNumber: `EXP-A${Math.floor(200 + Math.random() * 800)}`,
+    };
+
+    setManagedAssets((prev) =>
+      prev.map((a) => {
+        if (a.id === assetId) {
+          const updatedExpenses = [newRecord, ...a.expenses];
+          const newTotalExpenses = a.totalExpenses + expData.amount;
+          const newSharedExpenses =
+            expData.allocationType === 'shared'
+              ? a.sharedExpenses + expData.amount
+              : a.sharedExpenses;
+          const newDirectExpenses =
+            expData.allocationType === 'direct'
+              ? a.directExpenses + expData.amount
+              : a.directExpenses;
+          const newNetProfit = a.totalRevenue - newTotalExpenses;
+
+          return {
+            ...a,
+            expenses: updatedExpenses,
+            totalExpenses: newTotalExpenses,
+            sharedExpenses: newSharedExpenses,
+            directExpenses: newDirectExpenses,
+            netProfit: newNetProfit,
+          };
+        }
+        return a;
+      })
+    );
+
+    // Also reflect on global business expenses
+    setExpenses((prev) => [
+      {
+        id: `exp-${Date.now()}`,
+        expenseNumber: newRecord.expenseNumber,
+        category: expData.category,
+        vendor: expData.vendor,
+        amount: expData.amount,
+        date: expData.date,
+        paymentMethod: 'Company Card',
+        taxDeductible: true,
+        receiptAttached: true,
+        description: expData.description,
+      },
+      ...prev,
+    ]);
+
+    if (selectedAssetForDetail && selectedAssetForDetail.id === assetId) {
+      const a = selectedAssetForDetail;
+      const updatedExpenses = [newRecord, ...a.expenses];
+      const newTotalExpenses = a.totalExpenses + expData.amount;
+      const newSharedExpenses =
+        expData.allocationType === 'shared'
+          ? a.sharedExpenses + expData.amount
+          : a.sharedExpenses;
+      const newDirectExpenses =
+        expData.allocationType === 'direct'
+          ? a.directExpenses + expData.amount
+          : a.directExpenses;
+      const newNetProfit = a.totalRevenue - newTotalExpenses;
+
+      setSelectedAssetForDetail({
+        ...a,
+        expenses: updatedExpenses,
+        totalExpenses: newTotalExpenses,
+        sharedExpenses: newSharedExpenses,
+        directExpenses: newDirectExpenses,
+        netProfit: newNetProfit,
+      });
+    }
+  };
+
+  const handleUpdateAssetStatus = (assetId: string, newStatus: ManagedAsset['status']) => {
+    setManagedAssets((prev) =>
+      prev.map((a) => (a.id === assetId ? { ...a, status: newStatus } : a))
+    );
+    if (selectedAssetForDetail && selectedAssetForDetail.id === assetId) {
+      setSelectedAssetForDetail((prev) => (prev ? { ...prev, status: newStatus } : null));
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex font-['Plus_Jakarta_Sans',sans-serif]">
       {/* Sidebar Navigation */}
@@ -257,6 +429,7 @@ export default function App() {
         onCloseMobile={() => setIsMobileSidebarOpen(false)}
         pendingInvoicesCount={pendingInvoicesCount}
         activeJobsCount={activeJobsCount}
+        totalAssetsCount={managedAssets.length}
       />
 
       {/* Main Content Area */}
@@ -286,7 +459,7 @@ export default function App() {
 
         {/* Viewport Content Canvas */}
         <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-6">
-          {/* Dashboard View */}
+          {/* Section 1: Dashboard View */}
           {currentSection === 'dashboard' && (
             <div className="space-y-6">
               {/* 4 Financial Key Metrics Cards */}
@@ -377,6 +550,20 @@ export default function App() {
                 />
               </div>
             </div>
+          )}
+
+          {/* Section: Assets & Ownership Management View */}
+          {currentSection === 'assets' && (
+            <AssetsView
+              assets={managedAssets}
+              currency={businessConfig.currency}
+              businessConfig={businessConfig}
+              onOpenCreateAsset={() => setIsCreateAssetOpen(true)}
+              onViewAssetDetail={handleOpenAssetDetail}
+              onViewAssetProfitability={handleOpenAssetProfitability}
+              onOpenAssetSettlement={handleOpenAssetSettlement}
+              onAddAssetExpense={handleOpenAddAssetExpense}
+            />
           )}
 
           {/* Section 2: Customers View */}
@@ -537,6 +724,55 @@ export default function App() {
         businessConfig={businessConfig}
         onRecordPayment={handleOpenRecordPaymentForInvoice}
         onUpdateInvoiceStatus={handleUpdateInvoiceStatus}
+      />
+
+      {/* Assets & Ownership Modals */}
+      <CreateAssetModal
+        isOpen={isCreateAssetOpen}
+        onClose={() => setIsCreateAssetOpen(false)}
+        employees={employees}
+        currency={businessConfig.currency}
+        onCreateAsset={handleCreateAsset}
+      />
+
+      <AssetDetailModal
+        isOpen={!!selectedAssetForDetail}
+        onClose={() => setSelectedAssetForDetail(null)}
+        asset={selectedAssetForDetail}
+        currency={businessConfig.currency}
+        onOpenSettlement={(asset) => {
+          setSelectedAssetForDetail(null);
+          setSelectedAssetForSettlement(asset);
+        }}
+        onAddAssetExpense={handleOpenAddAssetExpense}
+        onUpdateAssetStatus={handleUpdateAssetStatus}
+      />
+
+      <AssetProfitabilityModal
+        isOpen={!!selectedAssetForProfitability}
+        onClose={() => setSelectedAssetForProfitability(null)}
+        asset={selectedAssetForProfitability}
+        currency={businessConfig.currency}
+        onOpenSettlement={(asset) => {
+          setSelectedAssetForProfitability(null);
+          setSelectedAssetForSettlement(asset);
+        }}
+      />
+
+      <AssetSettlementModal
+        isOpen={!!selectedAssetForSettlement}
+        onClose={() => setSelectedAssetForSettlement(null)}
+        asset={selectedAssetForSettlement}
+        currency={businessConfig.currency}
+        onConfirmSettlement={handleConfirmSettlement}
+      />
+
+      <AddAssetExpenseModal
+        isOpen={!!selectedAssetForExpense}
+        onClose={() => setSelectedAssetForExpense(null)}
+        asset={selectedAssetForExpense}
+        currency={businessConfig.currency}
+        onAddExpense={handleAddAssetExpense}
       />
     </div>
   );

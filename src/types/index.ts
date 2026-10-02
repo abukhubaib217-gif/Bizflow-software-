@@ -79,6 +79,8 @@ export interface SharingAgreement {
     | 'revenue_share'
     | 'expense_share'
     | 'profit_share'
+    | 'fixed_rental_amount'
+    | 'fixed_payment'
     | 'fixed_plus_share'
     | 'custom';
   ownershipPercentage?: number;

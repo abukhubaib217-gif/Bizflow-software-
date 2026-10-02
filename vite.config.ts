@@ -3,8 +3,14 @@ import react from '@vitejs/plugin-react';
 import path from 'path';
 import {defineConfig} from 'vite';
 
-export default defineConfig(() => {
+export default defineConfig(({command}) => {
+  // Configure base path for GitHub Pages hosting at /Bizflow-software/
+  // In development (serve), use '/' so preview and local dev load cleanly.
+  // In production (build) or when specified, use '/Bizflow-software/'.
+  const base = process.env.VITE_BASE_PATH ?? (command === 'build' ? '/Bizflow-software/' : '/');
+
   return {
+    base,
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
