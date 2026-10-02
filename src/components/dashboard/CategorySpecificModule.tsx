@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Truck,
   Wrench,
@@ -7,13 +7,13 @@ import {
   AlertCircle,
   Clock,
   Plus,
-  Radio,
   Fuel,
   Bed,
   Utensils,
   PhoneCall,
   DollarSign,
   ChevronRight,
+  Package,
 } from 'lucide-react';
 import { BusinessAsset, BusinessConfig } from '../../types';
 import { formatCurrency } from '../../utils/formatters';
@@ -44,7 +44,7 @@ export const CategorySpecificModule: React.FC<CategorySpecificModuleProps> = ({
       case 'crews':
         return <Users className="w-5 h-5 text-purple-600" />;
       default:
-        return <Wrench className="w-5 h-5 text-blue-600" />;
+        return <Package className="w-5 h-5 text-blue-600" />;
     }
   };
 
@@ -52,28 +52,28 @@ export const CategorySpecificModule: React.FC<CategorySpecificModuleProps> = ({
     switch (status) {
       case 'available':
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 bg-emerald-50 rounded border border-emerald-200">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700 bg-emerald-50 rounded-md border border-emerald-200">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
             Ready / Available
           </span>
         );
       case 'rented_on_job':
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-semibold text-blue-700 bg-blue-50 rounded border border-blue-200">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-[11px] font-semibold text-blue-700 bg-blue-50 rounded-md border border-blue-200">
             <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
             On Active Job
           </span>
         );
       case 'maintenance':
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-semibold text-amber-800 bg-amber-50 rounded border border-amber-200">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-[11px] font-semibold text-amber-800 bg-amber-50 rounded-md border border-amber-200">
             <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
             In Service / Shop
           </span>
         );
       case 'low_stock':
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-semibold text-rose-700 bg-rose-50 rounded border border-rose-200">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-[11px] font-semibold text-rose-700 bg-rose-50 rounded-md border border-rose-200">
             <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
             Reorder Level Low
           </span>
@@ -103,7 +103,7 @@ export const CategorySpecificModule: React.FC<CategorySpecificModuleProps> = ({
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200/80">
+          <div className="w-10 h-10 bg-slate-50 rounded-xl border border-slate-200/80 flex items-center justify-center shrink-0 shadow-2xs">
             {getModuleIcon()}
           </div>
           <div>
@@ -111,7 +111,7 @@ export const CategorySpecificModule: React.FC<CategorySpecificModuleProps> = ({
               <h2 className="text-sm font-bold text-slate-900 tracking-tight">
                 {terminology.assetModuleTitle}
               </h2>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200">
                 {businessConfig.categoryLabel}
               </span>
             </div>
@@ -125,20 +125,21 @@ export const CategorySpecificModule: React.FC<CategorySpecificModuleProps> = ({
       </div>
 
       {/* Domain-specific quick expense hotlinks */}
-      <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/70 space-y-2">
+      <div className="p-3.5 bg-slate-50/70 rounded-xl border border-slate-200/70 space-y-2.5">
         <div className="flex items-center justify-between">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-600">
             Category Expense Drivers ({businessConfig.categoryLabel})
           </span>
-          <span className="text-[11px] text-slate-400">Click to record instant expense</span>
+          <span className="text-[11px] text-slate-400">Record instant expense</span>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
           {terminology.specialExpenses.map((expCat) => (
             <button
               key={expCat}
+              type="button"
               onClick={() => onOpenAddExpenseWithCategory(expCat)}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-100 hover:text-blue-700 border border-slate-200 rounded-lg shadow-2xs transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-100 hover:text-blue-700 border border-slate-200 rounded-lg shadow-2xs transition-all cursor-pointer min-h-[32px]"
             >
               {getExpenseIcon(expCat)}
               <span>+ {expCat}</span>
@@ -147,7 +148,7 @@ export const CategorySpecificModule: React.FC<CategorySpecificModuleProps> = ({
         </div>
       </div>
 
-      {/* Asset Table / Cards */}
+      {/* Asset Table */}
       <div className="overflow-x-auto">
         <table className="w-full text-left text-xs">
           <thead>
@@ -155,7 +156,7 @@ export const CategorySpecificModule: React.FC<CategorySpecificModuleProps> = ({
               <th className="py-2.5 pr-3">Item / Unit</th>
               <th className="py-2.5 px-3">Classification</th>
               <th className="py-2.5 px-3">Rate / Metric</th>
-              <th className="py-2.5 px-3">Assigned Lead / Status</th>
+              <th className="py-2.5 px-3">Lead / Last Service</th>
               <th className="py-2.5 px-3 text-center">Status</th>
               <th className="py-2.5 pl-3 text-right">Action</th>
             </tr>
@@ -185,8 +186,9 @@ export const CategorySpecificModule: React.FC<CategorySpecificModuleProps> = ({
                 </td>
                 <td className="py-3 pl-3 text-right whitespace-nowrap">
                   <button
+                    type="button"
                     onClick={() => onActionClick(asset)}
-                    className="px-2.5 py-1 text-[11px] font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded border border-blue-200 transition-colors cursor-pointer"
+                    className="px-3 py-1.5 text-[11px] font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg border border-blue-200 transition-colors cursor-pointer"
                   >
                     Manage
                   </button>

@@ -9,6 +9,8 @@ import { RevenueByService } from './components/dashboard/RevenueByService';
 import { RecentInvoices } from './components/dashboard/RecentInvoices';
 import { RecentPayments } from './components/dashboard/RecentPayments';
 import { RecentExpenses } from './components/dashboard/RecentExpenses';
+import { RecentJobs } from './components/dashboard/RecentJobs';
+import { InvoicesStatusDonut } from './components/dashboard/InvoicesStatusDonut';
 import { CategorySpecificModule } from './components/dashboard/CategorySpecificModule';
 
 import { CustomersView } from './components/views/CustomersView';
@@ -462,7 +464,7 @@ export default function App() {
           {/* Section 1: Dashboard View */}
           {currentSection === 'dashboard' && (
             <div className="space-y-6">
-              {/* 4 Financial Key Metrics Cards */}
+              {/* Primary & Secondary KPI Cards (Hero row matching reference image + financial strip) */}
               <MetricCards
                 totalRevenue={totalRevenue}
                 receivedPayments={receivedPaymentsTotal}
@@ -471,14 +473,25 @@ export default function App() {
                 currency={businessConfig.currency}
                 overdueAmount={overdueAmount}
                 overdueCount={overdueInvoices.length}
+                totalCustomers={customers.length}
+                totalJobs={jobs.length}
+                totalAssets={managedAssets.length > 0 ? managedAssets.length : assets.length}
+                totalInvoicesCount={invoices.length}
+                totalPaymentsCount={payments.length}
+                jobLabel={businessConfig.terminology.jobPlural}
+                assetLabel={businessConfig.terminology.assetModuleTitle}
                 onViewInvoices={() => setCurrentSection('invoices')}
                 onViewPayments={() => setCurrentSection('payments')}
                 onViewExpenses={() => setCurrentSection('expenses')}
+                onViewCustomers={() => setCurrentSection('customers')}
+                onViewJobs={() => setCurrentSection('jobs')}
+                onViewAssets={() => setCurrentSection('assets')}
               />
 
-              {/* Quick Actions Bar */}
+              {/* Quick Operations Bar */}
               <QuickActionsBar
                 jobLabel={businessConfig.terminology.jobSingular}
+                assetLabel={businessConfig.terminology.assetModuleTitle}
                 onCreateInvoice={() => setIsCreateInvoiceOpen(true)}
                 onAddExpense={() => {
                   setInitialExpenseCategory('Fuel');
@@ -486,7 +499,46 @@ export default function App() {
                 }}
                 onAddCustomer={() => setIsAddCustomerOpen(true)}
                 onCreateJob={() => setIsCreateJobOpen(true)}
+                onRecordPayment={() => {
+                  setPaymentTargetInvoiceId(undefined);
+                  setIsRecordPaymentOpen(true);
+                }}
+                onAddAsset={() => setIsCreateAssetOpen(true)}
+                hasAssets={true}
               />
+
+              {/* Analytics Section: Monthly Revenue Chart + Invoices Status Donut (Matching Reference Image) */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <div className="lg:col-span-7 xl:col-span-8">
+                  <RevenueExpensesChart
+                    data={monthlyChart}
+                    currency={businessConfig.currency}
+                  />
+                </div>
+                <div className="lg:col-span-5 xl:col-span-4">
+                  <InvoicesStatusDonut
+                    invoices={invoices}
+                    currency={businessConfig.currency}
+                    onViewInvoices={() => setCurrentSection('invoices')}
+                  />
+                </div>
+              </div>
+
+              {/* Financial Summary & Revenue by Service Grid */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <MonthlyFinancialSummary
+                  totalRevenue={totalRevenue}
+                  receivedPayments={receivedPaymentsTotal}
+                  pendingPayments={pendingPaymentsTotal}
+                  totalExpenses={totalExpensesAmount}
+                  currency={businessConfig.currency}
+                />
+                <RevenueByService
+                  services={services}
+                  currency={businessConfig.currency}
+                  onViewAllServices={() => setCurrentSection('services')}
+                />
+              </div>
 
               {/* Business-Specific Dynamic Module (Adapts per category) */}
               <CategorySpecificModule
@@ -497,51 +549,29 @@ export default function App() {
                 onActionClick={handleAssetAction}
               />
 
-              {/* Middle Grid: Revenue vs Expenses Chart & Monthly Financial Summary */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2">
-                  <RevenueExpensesChart
-                    data={monthlyChart}
-                    currency={businessConfig.currency}
-                  />
-                </div>
-                <div className="lg:col-span-1">
-                  <MonthlyFinancialSummary
-                    totalRevenue={totalRevenue}
-                    receivedPayments={receivedPaymentsTotal}
-                    pendingPayments={pendingPaymentsTotal}
-                    totalExpenses={totalExpensesAmount}
-                    currency={businessConfig.currency}
-                  />
-                </div>
-              </div>
-
-              {/* Revenue by Service & Recent Invoices Grid */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-1">
-                  <RevenueByService
-                    services={services}
-                    currency={businessConfig.currency}
-                    onViewAllServices={() => setCurrentSection('services')}
-                  />
-                </div>
-                <div className="lg:col-span-2">
-                  <RecentInvoices
-                    invoices={invoices}
-                    currency={businessConfig.currency}
-                    onViewInvoice={(inv) => setSelectedInvoiceForDetail(inv)}
-                    onRecordPaymentForInvoice={handleOpenRecordPaymentForInvoice}
-                    onViewAllInvoices={() => setCurrentSection('invoices')}
-                  />
-                </div>
-              </div>
-
-              {/* Bottom Tables: Recent Payments & Recent Expenses */}
+              {/* Recent Activity: Recent Invoices & Recent Payments */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <RecentInvoices
+                  invoices={invoices}
+                  currency={businessConfig.currency}
+                  onViewInvoice={(inv) => setSelectedInvoiceForDetail(inv)}
+                  onRecordPaymentForInvoice={handleOpenRecordPaymentForInvoice}
+                  onViewAllInvoices={() => setCurrentSection('invoices')}
+                />
                 <RecentPayments
                   payments={payments}
                   currency={businessConfig.currency}
                   onViewAllPayments={() => setCurrentSection('payments')}
+                />
+              </div>
+
+              {/* Recent Operations & Outflows: Active Jobs & Recent Expenses */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <RecentJobs
+                  jobs={jobs}
+                  currency={businessConfig.currency}
+                  jobLabel={businessConfig.terminology.jobPlural}
+                  onViewAllJobs={() => setCurrentSection('jobs')}
                 />
                 <RecentExpenses
                   expenses={expenses}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Receipt, ArrowRight, Check, FileCheck } from 'lucide-react';
+import { Receipt, ArrowRight, FileCheck } from 'lucide-react';
 import { Expense } from '../../types';
 import { formatCurrency } from '../../utils/formatters';
 
@@ -15,21 +15,22 @@ export const RecentExpenses: React.FC<RecentExpensesProps> = ({
   onViewAllExpenses,
 }) => {
   return (
-    <div className="bg-white rounded-xl p-5 border border-slate-200/90 shadow-xs flex flex-col justify-between">
+    <div className="bg-white rounded-xl p-5 border border-slate-200/90 shadow-xs flex flex-col justify-between h-full">
       <div>
         <div className="flex items-center justify-between pb-3 border-b border-slate-100">
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-sm font-bold text-slate-900 tracking-tight">Recent Expenses</h2>
-              <span className="text-[11px] text-rose-700 bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
+              <span className="text-[11px] text-rose-700 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">
                 Operating Outflows
               </span>
             </div>
             <p className="text-xs text-slate-500 mt-0.5">
-              Materials, subcontracting, fleet, and software costs
+              Fuel, maintenance, subcontracting, and fleet costs
             </p>
           </div>
           <button
+            type="button"
             onClick={onViewAllExpenses}
             className="text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1 cursor-pointer"
           >
@@ -43,8 +44,8 @@ export const RecentExpenses: React.FC<RecentExpensesProps> = ({
           <table className="w-full text-left text-xs">
             <thead>
               <tr className="border-b border-slate-100 text-slate-400 font-medium">
-                <th className="py-2.5 pr-3">Expense</th>
-                <th className="py-2.5 px-3">Vendor & Description</th>
+                <th className="py-2.5 pr-3">Expense ID</th>
+                <th className="py-2.5 px-3">Vendor & Details</th>
                 <th className="py-2.5 px-3">Category</th>
                 <th className="py-2.5 px-3">Date</th>
                 <th className="py-2.5 px-3 text-center">Tax Status</th>
@@ -58,10 +59,10 @@ export const RecentExpenses: React.FC<RecentExpensesProps> = ({
                     {exp.expenseNumber}
                   </td>
                   <td className="py-3 px-3">
-                    <div className="font-medium text-slate-800 truncate max-w-[170px]">
+                    <div className="font-medium text-slate-800 truncate max-w-[160px]">
                       {exp.vendor}
                     </div>
-                    <div className="text-[11px] text-slate-400 truncate max-w-[170px]">
+                    <div className="text-[11px] text-slate-400 truncate max-w-[160px]">
                       {exp.description}
                     </div>
                   </td>
@@ -89,6 +90,17 @@ export const RecentExpenses: React.FC<RecentExpensesProps> = ({
             </tbody>
           </table>
         </div>
+      </div>
+
+      <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+        <span>Recorded operating outflows</span>
+        <button
+          type="button"
+          onClick={onViewAllExpenses}
+          className="text-rose-600 hover:text-rose-800 font-medium cursor-pointer"
+        >
+          View All Expenses
+        </button>
       </div>
     </div>
   );
