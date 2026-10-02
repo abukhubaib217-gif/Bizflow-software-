@@ -4,10 +4,9 @@ import path from 'path';
 import {defineConfig} from 'vite';
 
 export default defineConfig(({command}) => {
-  // Configure base path for GitHub Pages hosting at /Bizflow-software/
+  // Use relative base './' for static production builds to support any repository name (e.g. Bizflow-software- or Bizflow-software)
   // In development (serve), use '/' so preview and local dev load cleanly.
-  // In production (build) or when specified, use '/Bizflow-software/'.
-  const base = process.env.VITE_BASE_PATH ?? (command === 'build' ? '/Bizflow-software/' : '/');
+  const base = process.env.VITE_BASE_PATH ?? (command === 'build' ? './' : '/');
 
   return {
     base,

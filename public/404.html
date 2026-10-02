@@ -6,17 +6,18 @@
     <title>BizFlow - Modern Business Management Software</title>
     <script>
       // SPA Fallback for GitHub Pages static hosting
-      var path = window.location.pathname;
-      var repo = '/Bizflow-software';
-      if (path.startsWith(repo)) {
-        window.location.replace(repo + '/');
-      } else {
-        window.location.replace('/Bizflow-software/');
-      }
+      var pathSegments = window.location.pathname.split('/').filter(Boolean);
+      var basePath = pathSegments.length > 0 ? '/' + pathSegments[0] + '/' : '/';
+      window.location.replace(basePath);
     </script>
   </head>
   <body style="font-family: sans-serif; padding: 2rem; color: #334155; text-align: center;">
     <h2>Redirecting to BizFlow...</h2>
-    <p>If you are not redirected automatically, <a href="/Bizflow-software/" style="color: #2563eb;">click here</a>.</p>
+    <p>If you are not redirected automatically, <a id="redirect-link" href="./" style="color: #2563eb;">click here</a>.</p>
+    <script>
+      var pathSegments = window.location.pathname.split('/').filter(Boolean);
+      var basePath = pathSegments.length > 0 ? '/' + pathSegments[0] + '/' : '/';
+      document.getElementById('redirect-link').href = basePath;
+    </script>
   </body>
 </html>
